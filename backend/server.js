@@ -7,29 +7,7 @@ dotenv.config();
 
 const app = express();
 
-// Middleware
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Root route
-app.get('/', (req, res) => {
-  res.json({ message: 'AURA Backend API is running' });
-});
-
-// Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/bookings', require('./routes/bookings'));
-app.use('/api/resources', require('./routes/resources'));
-app.use('/api/metrics', require('./routes/metrics'));
-app.use('/api/seed', require('./routes/seed'));
-
-// Database connection
+// Database connection setup (must be before routes)
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/aura';
 
@@ -71,21 +49,18 @@ async function connectDB() {
   return cached.conn;
 }
 
-// Connect to MongoDB
-if (process.env.VERCEL !== '1') {
-  // For local development, connect immediately
-  connectDB()
-    .then(() => {
-      app.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
-      });
-    })
-    .catch((error) => {
-      console.error('MongoDB connection error:', error);
-      process.exit(1);
-    });
-} else {
-  // For Vercel serverless, connect on first request
+// Middleware
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Database connection middleware for Vercel (must be before routes)
+if (process.env.VERCEL === '1') {
   app.use(async (req, res, next) => {
     try {
       await connectDB();
@@ -99,6 +74,32 @@ if (process.env.VERCEL !== '1') {
       });
     }
   });
+}
+
+// Root route
+app.get('/', (req, res) => {
+  res.json({ message: 'AURA Backend API is running' });
+});
+
+// Routes
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/bookings', require('./routes/bookings'));
+app.use('/api/resources', require('./routes/resources'));
+app.use('/api/metrics', require('./routes/metrics'));
+app.use('/api/seed', require('./routes/seed'));
+
+// Connect to MongoDB for local development
+if (process.env.VERCEL !== '1') {
+  connectDB()
+    .then(() => {
+      app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+      });
+    })
+    .catch((error) => {
+      console.error('MongoDB connection error:', error);
+      process.exit(1);
+    });
 }
 
 // Error handling middleware (must be after routes)
