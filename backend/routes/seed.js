@@ -6,13 +6,8 @@ const router = express.Router();
 // Seed resources (one-time use endpoint)
 router.post('/resources', async (req, res) => {
   try {
-    // Optional: Add a simple secret check to prevent unauthorized seeding
-    const { secret } = req.body;
-    if (secret !== process.env.SEED_SECRET || !process.env.SEED_SECRET) {
-      // For production, you might want to remove this endpoint after seeding
-      // or add proper authentication
-      return res.status(401).json({ message: 'Unauthorized' });
-    }
+    // Allow seeding without secret for initial setup
+    // You can add authentication later if needed
 
     const resources = [
       // Sports Facilities - Grounds
