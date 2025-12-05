@@ -35,13 +35,16 @@ const History = () => {
     : pastBookings.filter(booking => booking.status === filter);
 
   const formatDateTime = (dateString) => {
+    // Parse the date string (MongoDB stores as ISO/UTC)
     const date = new Date(dateString);
+    // Format in user's local timezone (toLocaleString automatically uses local timezone)
     return date.toLocaleString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
+      hour12: true
     });
   };
 

@@ -60,9 +60,16 @@ router.post('/', auth, async (req, res) => {
     }
 
     // Validate dates
+    // Parse dates - if they come as ISO strings, they're already in UTC
+    // If they come as datetime-local strings (YYYY-MM-DDTHH:mm), treat as local time
     const start = new Date(startDateTime);
     const end = new Date(endDateTime);
     const now = new Date();
+    
+    // Ensure dates are valid
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return res.status(400).json({ message: 'Invalid date format' });
+    }
 
     if (start >= end) {
       return res.status(400).json({ message: 'End date must be after start date' });

@@ -56,7 +56,23 @@ const Payment = () => {
       // Simulate payment processing delay
       await new Promise(resolve => setTimeout(resolve, 800));
 
-      const response = await axios.post(`${API_URL}/api/bookings`, bookingData);
+      // Convert datetime-local strings to ISO strings
+      // datetime-local gives "YYYY-MM-DDTHH:mm" (no timezone) - treat as local time
+      // Convert to ISO string which MongoDB will store correctly
+      const convertToISO = (dateTimeLocal) => {
+        // Create date from local time string
+        const localDate = new Date(dateTimeLocal);
+        // Convert to ISO (UTC) - this preserves the actual moment in time
+        return localDate.toISOString();
+      };
+
+      const processedBookingData = {
+        ...bookingData,
+        startDateTime: convertToISO(bookingData.startDateTime),
+        endDateTime: convertToISO(bookingData.endDateTime)
+      };
+
+      const response = await axios.post(`${API_URL}/api/bookings`, processedBookingData);
 
       setSuccess('Payment successful! Your booking has been created and approved.');
 
